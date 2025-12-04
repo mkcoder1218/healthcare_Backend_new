@@ -5,7 +5,6 @@ export const model: Record<string, ModelDefinition> = {
   User: {
     fields: {
       name: { type: "STRING", allowNull: false },
-      email: { type: "STRING", allowNull: false, unique: true },
       phone_number: { type: "STRING", allowNull: true },
       password: { type: "STRING", allowNull: false },
       role_id: { type: "UUID", allowNull: true }, // links to Role
@@ -13,10 +12,18 @@ export const model: Record<string, ModelDefinition> = {
       status: { type: "STRING", allowNull: false, default: "Active" },
     },
     relations: [
-      { type: "belongsTo", model: "Role", options: { foreignKey: "role_id", as: "role" } },
+      {
+        type: "belongsTo",
+        model: "Role",
+        options: { foreignKey: "role_id", as: "role" },
+      },
       { type: "hasMany", model: "Booking", options: { foreignKey: "user_id" } },
 
-      { type: "hasMany", model: "Notification", options: { foreignKey: "user_id" } },
+      {
+        type: "hasMany",
+        model: "Notification",
+        options: { foreignKey: "user_id" },
+      },
     ],
     routes: ["create", "read", "update", "delete"],
     auth: { create: true, read: true, update: true, delete: true },
@@ -41,12 +48,25 @@ export const model: Record<string, ModelDefinition> = {
       license_file_id: { type: "UUID", allowNull: false },
       degree_file_id: { type: "UUID", allowNull: false },
       bio: { type: "STRING", allowNull: true },
-      verification_status: { type: "ENUM", values: ["Pending", "Verified", "Rejected"], allowNull: false, default: "Pending" },
+      verification_status: {
+        type: "ENUM",
+        values: ["Pending", "Verified", "Rejected"],
+        allowNull: false,
+        default: "Pending",
+      },
     },
     relations: [
       { type: "belongsTo", model: "User", options: { foreignKey: "user_id" } },
-      { type: "belongsTo", model: "File", options: { foreignKey: "license_file_id", as: "licenseFile" } },
-      { type: "belongsTo", model: "File", options: { foreignKey: "degree_file_id", as: "degreeFile" } },
+      {
+        type: "belongsTo",
+        model: "File",
+        options: { foreignKey: "license_file_id", as: "licenseFile" },
+      },
+      {
+        type: "belongsTo",
+        model: "File",
+        options: { foreignKey: "degree_file_id", as: "degreeFile" },
+      },
     ],
     routes: ["create", "read", "update", "delete"],
     auth: { create: true, read: true, update: true, delete: true },
@@ -56,7 +76,7 @@ export const model: Record<string, ModelDefinition> = {
     fields: {
       user_id: { type: "UUID", allowNull: false },
       age: { type: "INTEGER", allowNull: true },
-      client_type_id:{type:"UUID",allowNull:true},
+      client_type_id: { type: "UUID", allowNull: true },
       sex: { type: "STRING", allowNull: true },
       marital_status: { type: "STRING", allowNull: true },
       residency: { type: "STRING", allowNull: true },
@@ -69,9 +89,21 @@ export const model: Record<string, ModelDefinition> = {
     },
     relations: [
       { type: "belongsTo", model: "User", options: { foreignKey: "user_id" } },
-      {type:"belongsTo",model:"ClientTypes",options:{foreignKey:"client_type_id"}},
-      { type: "hasMany", model: "Booking", options: { foreignKey: "client_id" } },
-      { type: "belongsTo", model: "ClientLevel", options: { foreignKey: "client_level_id" } },
+      {
+        type: "belongsTo",
+        model: "ClientTypes",
+        options: { foreignKey: "client_type_id" },
+      },
+      {
+        type: "hasMany",
+        model: "Booking",
+        options: { foreignKey: "client_id" },
+      },
+      {
+        type: "belongsTo",
+        model: "ClientLevel",
+        options: { foreignKey: "client_level_id" },
+      },
     ],
     routes: ["create", "read", "update", "delete"],
     auth: { create: true, read: true, update: true, delete: true },
@@ -84,49 +116,56 @@ export const model: Record<string, ModelDefinition> = {
       price: { type: "STRING", allowNull: false },
       duration: { type: "STRING", allowNull: false },
       category_id: { type: "UUID", allowNull: true },
-      file_id:{type:'UUID',allowNull:true},
-      type_id:{type:"UUID",allowNull:true}
+      file_id: { type: "UUID", allowNull: true },
+      type_id: { type: "UUID", allowNull: true },
     },
     relations: [
-      { type: "hasMany", model: "Booking", options: { foreignKey: "service_id" } },
-      { type: "belongsTo", model: "ServiceCategory", options: { foreignKey: "category_id" } },
-      { type: "belongsTo", model: "ServiceType", options: { foreignKey: "type_id" } },
-
+      {
+        type: "hasMany",
+        model: "Booking",
+        options: { foreignKey: "service_id" },
+      },
+      {
+        type: "belongsTo",
+        model: "ServiceCategory",
+        options: { foreignKey: "category_id" },
+      },
+      {
+        type: "belongsTo",
+        model: "ServiceType",
+        options: { foreignKey: "type_id" },
+      },
     ],
     routes: ["create", "read", "update", "delete"],
     auth: { create: true, read: true, update: true, delete: true },
   },
-  ClientTypes:{
-    fields:{
-      name:{type:"STRING",allowNull:false},
-      description:{type:"STRING",allowNull:false}
+  ClientTypes: {
+    fields: {
+      name: { type: "STRING", allowNull: false },
+      description: { type: "STRING", allowNull: false },
     },
     routes: ["create", "read", "update", "delete"],
-
   },
-  ClientLevel:{
-    fields:{
-      name:{type:"STRING",allowNull:false},
-      description:{type:"STRING",allowNull:false}
+  ClientLevel: {
+    fields: {
+      name: { type: "STRING", allowNull: false },
+      description: { type: "STRING", allowNull: false },
     },
     routes: ["create", "read", "update", "delete"],
-
   },
-  ServiceCategory:{
-    fields:{
-      name:{type:"STRING",allowNull:false},
-      description:{type:"STRING",allowNull:false}
+  ServiceCategory: {
+    fields: {
+      name: { type: "STRING", allowNull: false },
+      description: { type: "STRING", allowNull: false },
     },
     routes: ["create", "read", "update", "delete"],
-
   },
-  ServiceType:{
-    fields:{
-      name:{type:"STRING",allowNull:false},
-      description:{type:"STRING",allowNull:false},
+  ServiceType: {
+    fields: {
+      name: { type: "STRING", allowNull: false },
+      description: { type: "STRING", allowNull: false },
     },
     routes: ["create", "read", "update", "delete"],
-
   },
   Booking: {
     fields: {
@@ -135,14 +174,36 @@ export const model: Record<string, ModelDefinition> = {
       service_id: { type: "UUID", allowNull: false },
       date: { type: "STRING", allowNull: false },
       time: { type: "STRING", allowNull: false },
-      status: { type: "ENUM", values: ["Pending", "Confirmed", "Completed", "Cancelled"], allowNull: false, default: "Pending" },
+      status: {
+        type: "ENUM",
+        values: ["Pending", "Confirmed", "Completed", "Cancelled"],
+        allowNull: false,
+        default: "Pending",
+      },
       notes: { type: "STRING", allowNull: true },
-      payment_status: { type: "ENUM", values: ["Paid", "Unpaid"], allowNull: false, default: "Unpaid" },
+      payment_status: {
+        type: "ENUM",
+        values: ["Paid", "Unpaid"],
+        allowNull: false,
+        default: "Unpaid",
+      },
     },
     relations: [
-      { type: "belongsTo", model: "ClientProfile", options: { foreignKey: "client_id" } },
-      { type: "belongsTo", model: "ProfessionalProfile", options: { foreignKey: "professional_id" } },
-      { type: "belongsTo", model: "Service", options: { foreignKey: "service_id" } },
+      {
+        type: "belongsTo",
+        model: "ClientProfile",
+        options: { foreignKey: "client_id" },
+      },
+      {
+        type: "belongsTo",
+        model: "ProfessionalProfile",
+        options: { foreignKey: "professional_id" },
+      },
+      {
+        type: "belongsTo",
+        model: "Service",
+        options: { foreignKey: "service_id" },
+      },
     ],
     routes: ["create", "read", "update", "delete"],
     auth: { create: true, read: true, update: true, delete: true },
@@ -150,13 +211,21 @@ export const model: Record<string, ModelDefinition> = {
 
   File: {
     fields: {
-      url: { type: "STRING", allowNull: false },
+      url: { type: "STRING", allowNull: true },
       description: { type: "STRING", allowNull: true },
       type: { type: "STRING", allowNull: true }, // e.g., "License", "ProfilePic", "Video"
     },
     relations: [
-      { type: "hasMany", model: "ProfessionalProfile", options: { foreignKey: "license_file_id" } },
-      { type: "hasMany", model: "ProfessionalProfile", options: { foreignKey: "degree_file_id" } },
+      {
+        type: "hasMany",
+        model: "ProfessionalProfile",
+        options: { foreignKey: "license_file_id" },
+      },
+      {
+        type: "hasMany",
+        model: "ProfessionalProfile",
+        options: { foreignKey: "degree_file_id" },
+      },
     ],
     routes: ["create", "read", "update", "delete"],
     auth: { create: true, read: true, update: true, delete: true },

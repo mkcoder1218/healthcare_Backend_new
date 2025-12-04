@@ -28,6 +28,7 @@
     "pg-hstore": "^2.3.4",
     "pluralize": "^8.0.0",
     "sequelize": "^6.37.7",
+    "socket.io": "^4.8.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "uuid": "^13.0.0"
@@ -44,6 +45,7 @@
     "@types/pg": "^8.15.5",
     "@types/pluralize": "^0.0.33",
     "@types/sequelize": "^4.28.20",
+    "@types/socket.io": "^3.0.1",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
     "sequelize-cli": "^6.6.3",

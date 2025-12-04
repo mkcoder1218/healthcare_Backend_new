@@ -11,12 +11,9 @@ import { userPointController } from "../controller/custom/userpoint";
 import { BookingController } from "../controller/custom/booking";
 const router = express.Router();
 
-
-
 /** Auth routes (public) */
 router.post("/auth/register", asyncHandler(authController.register));
 router.post("/auth/login", asyncHandler(authController.login));
-
 
 /** Protected profile route */
 router.get(
@@ -42,7 +39,8 @@ for (const modelName in model) {
   if (def.routes?.includes("create")) {
     const middlewares: RequestHandler[] = [
       ...(def.auth?.create
-        ? [//authenticateToken(process.env.JWT_SECRET!),// checkAccess(modelName, "create")
+        ? [
+            //authenticateToken(process.env.JWT_SECRET!),// checkAccess(modelName, "create")
           ]
         : []),
       validate(schema),
@@ -56,7 +54,7 @@ for (const modelName in model) {
     const readMw: RequestHandler[] = [
       ...(def.auth?.read
         ? [
-          authenticateToken(process.env.JWT_SECRET!), checkAccess(modelName, "read")
+            // authenticateToken(process.env.JWT_SECRET!), checkAccess(modelName, "read")
           ]
         : []),
     ];
@@ -69,9 +67,8 @@ for (const modelName in model) {
     const middlewares: RequestHandler[] = [
       ...(def.auth?.update
         ? [
-          authenticateToken(process.env.JWT_SECRET!), checkAccess(modelName, "update")
-
-        ]
+            // authenticateToken(process.env.JWT_SECRET!), checkAccess(modelName, "update")
+          ]
         : []),
       validateUpdate(schemaupdate),
       ...uniqueFields.map((f) => uniqueCheck(modelName, f, "id")),
@@ -84,9 +81,8 @@ for (const modelName in model) {
     const deleteMw: RequestHandler[] = [
       ...(def.auth?.delete
         ? [
-          //authenticateToken(process.env.JWT_SECRET!), //checkAccess(modelName, "delete")
-
-        ]
+            //authenticateToken(process.env.JWT_SECRET!), //checkAccess(modelName, "delete")
+          ]
         : []),
     ];
     router.delete(`${basePath}/:id`, ...deleteMw, controller.delete);
