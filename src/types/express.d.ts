@@ -6,3 +6,11 @@ declare module "express-serve-static-core" {
     user?: UserInstance & { role_id?: string };
   }
 }
+
+declare global {
+  namespace Express {
+    interface Request {
+      user?: UserInstance & { role?: { name: string } };
+    }
+  }
+}
