@@ -115,6 +115,9 @@ for (const modelName in modelDefs) {
         case "hasMany":
           mdl.hasMany(target, rel.options);
           break;
+        case "hasOne":
+          mdl.hasOne(target, rel.options);
+          break;
         case "belongsTo":
           mdl.belongsTo(target, rel.options);
           break;

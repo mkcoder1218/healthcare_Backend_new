@@ -24,6 +24,16 @@ export const model: Record<string, ModelDefinition> = {
         model: "Notification",
         options: { foreignKey: "user_id" },
       },
+      {
+        type: "hasOne",
+        model: "ClientProfile",
+        options: { foreignKey: "user_id", as: "clientProfile" },
+      },
+      {
+        type: "hasOne",
+        model: "ProfessionalProfile",
+        options: { foreignKey: "user_id", as: "professionalProfile" },
+      },
     ],
     routes: ["create", "read", "update", "delete"],
     auth: { create: true, read: true, update: true, delete: true },
