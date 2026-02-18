@@ -3,10 +3,12 @@ import jwt from "jsonwebtoken";
 import { createdModels } from "../model/db";
 import { UserInstance } from "../model/types";
 
-// Extend Express Request type
-declare module "express-serve-static-core" {
-  interface Request {
-    user?: UserInstance & { role?: { name: string } };
+// --- TypeScript: Extend Express Request ---
+declare global {
+  namespace Express {
+    interface Request {
+      user?: UserInstance & { role?: { name: string }; role_id?: string };
+    }
   }
 }
 
@@ -30,19 +32,25 @@ export const authenticateToken = (secret: string) => {
       const token = authHeader?.split(" ")[1];
 
       if (!token) {
-        return res.status(401).json({ status: "error", message: "No token provided" });
+        return res
+          .status(401)
+          .json({ status: "error", message: "No token provided" });
       }
 
       const payload = jwt.verify(token, secret) as JwtPayload;
 
       const UserModel = createdModels["User"];
-      const user = (await UserModel.findByPk(payload.id)) as unknown as UserInstance;
+      const user = (await UserModel.findByPk(
+        payload.id,
+      )) as unknown as UserInstance;
 
       if (!user) {
-        return res.status(401).json({ status: "error", message: "User not found" });
+        return res
+          .status(401)
+          .json({ status: "error", message: "User not found" });
       }
 
-      (req as any).user = user;
+      req.user = user as any; // No 'as any' cast needed
       next();
     } catch (err: any) {
       console.error("JWT verify failed:", err);
@@ -73,7 +81,9 @@ export const checkAccess =
     try {
       const userId = req.user?.id;
       if (!userId) {
-        return res.status(401).json({ status: "error", message: "Unauthorized" });
+        return res
+          .status(401)
+          .json({ status: "error", message: "Unauthorized" });
       }
 
       const UserModel = createdModels["User"];
@@ -84,7 +94,9 @@ export const checkAccess =
       })) as unknown as UserInstance & { role?: { name: string } };
 
       if (!user || !user.role_id) {
-        return res.status(401).json({ status: "error", message: "Unauthorized" });
+        return res
+          .status(401)
+          .json({ status: "error", message: "Unauthorized" });
       }
 
       // Super Admin bypass (hard-coded id)
@@ -114,15 +126,18 @@ export const checkAccess =
       });
 
       if (!roleHasRule) {
-        return res
-          .status(403)
-          .json({ status: "error", message: `Forbidden: no permission to ${action} ${modelName}` });
+        return res.status(403).json({
+          status: "error",
+          message: `Forbidden: no permission to ${action} ${modelName}`,
+        });
       }
 
       req.user = user;
       next();
     } catch (err) {
       console.error("Access middleware error:", err);
-      res.status(500).json({ status: "error", message: "Internal server error" });
+      res
+        .status(500)
+        .json({ status: "error", message: "Internal server error" });
     }
   };

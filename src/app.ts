@@ -9,9 +9,9 @@ import path from "path";
 
 // Import your modules
 import router from "./routes/route";
-import { sequelize } from "./model/db";
 import swagger from "./swagger/swaggerIndex";
 import fileController from "./controller/custom/file.controller";
+import sequelize from "./model/db";
 
 // Initialize Express
 const app = express();
@@ -23,7 +23,7 @@ app.use(
     origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-  })
+  }),
 );
 
 // Middleware
@@ -66,7 +66,7 @@ io.on("connection", (socket) => {
 
       // Notify others in the room
       socket.to(roomId).emit("new-participant", userId);
-    }
+    },
   );
 
   socket.on(
@@ -82,7 +82,7 @@ io.on("connection", (socket) => {
     }) => {
       const target = users.find((u) => u.userId === to);
       if (target) io.to(target.socketId).emit("offer", { sdp, from });
-    }
+    },
   );
 
   socket.on(
@@ -90,7 +90,7 @@ io.on("connection", (socket) => {
     ({ sdp, to }: { sdp: RTCSessionDescriptionInit; to: string }) => {
       const target = users.find((u) => u.userId === to);
       if (target) io.to(target.socketId).emit("answer", { sdp });
-    }
+    },
   );
 
   socket.on(
@@ -99,12 +99,12 @@ io.on("connection", (socket) => {
       const sender = users.find((u) => u.userId === from);
       if (!sender) return;
       const roomUsers = users.filter(
-        (u) => u.roomId === sender.roomId && u.userId !== from
+        (u) => u.roomId === sender.roomId && u.userId !== from,
       );
       roomUsers.forEach((u) =>
-        io.to(u.socketId).emit("ice-candidate", { candidate })
+        io.to(u.socketId).emit("ice-candidate", { candidate }),
       );
-    }
+    },
   );
 
   socket.on("disconnect", () => {

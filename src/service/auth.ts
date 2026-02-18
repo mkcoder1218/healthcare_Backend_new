@@ -1,8 +1,9 @@
 import bcrypt from "bcryptjs"; // Use bcryptjs for easier installation
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { createdModels, sequelize } from "../model/db";
+import { createdModels } from "../model/db";
 import { Model } from "sequelize";
 import { Request } from "express";
+import sequelize from "../model/db";
 
 const SALT_ROUNDS = 10;
 const JWT_SECRET = process.env.JWT_SECRET || "your_secret_key";
@@ -106,7 +107,7 @@ export const authService = {
           role_id,
           status: "Active",
         },
-        { transaction }
+        { transaction },
       );
 
       const userPlain = user.get({ plain: true });
@@ -126,7 +127,7 @@ export const authService = {
             degree_file_id: professionalProfile.degree_file_id,
             bio: professionalProfile.bio || null,
           },
-          { transaction }
+          { transaction },
         );
       }
 
@@ -148,7 +149,7 @@ export const authService = {
             problem_description: clientProfile.problem_description,
             client_level_id: clientProfile.client_level_id,
           },
-          { transaction }
+          { transaction },
         );
       }
 
@@ -185,7 +186,7 @@ export const authService = {
     const token = jwt.sign(
       { id: user.id, phone_number: user.email, role_id: user.role_id },
       JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "7d" },
     );
 
     return { user, token };

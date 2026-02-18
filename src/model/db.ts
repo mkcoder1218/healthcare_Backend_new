@@ -1,16 +1,46 @@
 import { Sequelize, DataTypes, Model, ModelStatic } from "sequelize";
 import { model as modelDefs } from "./model";
 
-export const sequelize = new Sequelize(
-  "health_care_new",
-  "postgres",
-  "postgres",
-  {
-    host: "localhost",
+import dotenv from "dotenv";
+dotenv.config();
+
+let sequelize: Sequelize;
+
+if (process.env.NODE_ENV === "production" && process.env.DATABASE_URL) {
+  // Production: Use full URL from Render
+  sequelize = new Sequelize(process.env.DATABASE_URL, {
     dialect: "postgres",
-    logging: console.log,
+    logging: false,
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false, // necessary for Render / cloud SSL
+      },
+    },
+  });
+} else {
+  // Development: Use local Postgres
+  if (
+    !process.env.DB_NAME ||
+    !process.env.DB_USER ||
+    !process.env.DB_PASSWORD ||
+    !process.env.DB_HOST
+  ) {
+    throw new Error("Missing DB config in .env for development");
   }
-);
+
+  sequelize = new Sequelize(
+    process.env.DB_NAME,
+    process.env.DB_USER,
+    process.env.DB_PASSWORD,
+    {
+      host: process.env.DB_HOST,
+      port: Number(process.env.DB_PORT) || 5432,
+      dialect: "postgres",
+      logging: console.log,
+    },
+  );
+}
 
 type AnyModel = ModelStatic<Model<any, any>>;
 export const createdModels: Record<string, AnyModel> = {};
@@ -77,7 +107,7 @@ for (const modelName in modelDefs) {
       const target = createdModels[rel.model];
       if (!target) {
         throw new Error(
-          `Model "${rel.model}" not found for relation in "${modelName}"`
+          `Model "${rel.model}" not found for relation in "${modelName}"`,
         );
       }
 
@@ -95,9 +125,4 @@ for (const modelName in modelDefs) {
     });
   }
 }
-
-// Step 3: Sync (use force: true for first-time dev)
-sequelize
-  .sync({ alter: true }) // or { force: true } if starting fresh
-  .then(() => console.log("✅ All tables synced"))
-  .catch((err) => console.error("❌ Sequelize sync error:", err));
+export default sequelize;
