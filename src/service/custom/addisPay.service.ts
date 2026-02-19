@@ -1,12 +1,17 @@
 const apiKey =
   process.env.ADDISPAY_API_KEY || "**********************************";
-const baseUrl =
-  process.env.NODE_ENV === "production"
-    ? "https://api.addispay.et/checkout-api/v1"
-    : "https://uat.api.addispay.et/checkout-api/v1";
 
-// For environments where fetch is not global (older Node.js)
-// Note: In Node 18+ fetch is global.
+// UAT key → always use UAT base URL until you switch to a live key
+const baseUrl = "https://uat.api.addispay.et/checkout-api/v1";
+
+// Debug log — confirms what key + URL is being used (check your Render logs)
+console.log("[AddisPay] Base URL:", baseUrl);
+console.log(
+  "[AddisPay] API Key status:",
+  apiKey !== "**********************************"
+    ? "✅ Real key loaded"
+    : "❌ Placeholder key — set ADDISPAY_API_KEY in Render Environment",
+);
 
 export interface PaymentData {
   redirect_url?: string;
