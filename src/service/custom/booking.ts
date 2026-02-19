@@ -1,3 +1,4 @@
+import { Op } from "sequelize";
 import sequelize from "../../model/db";
 import { PointService } from "./point";
 
@@ -19,14 +20,30 @@ export const BookingService = {
     return booking;
   },
 
-  async getMyBookings(user_id: string) {
+  async getMyBookings(user_id: string, options: any = {}) {
     const Booking = sequelize.models.Booking;
     const Service = sequelize.models.Service;
     const ProfessionalProfile = sequelize.models.ProfessionalProfile;
+    const ClientProfile = sequelize.models.ClientProfile;
     const User = sequelize.models.User;
 
-    return await Booking.findAll({
-      where: { user_id },
+    // 1️⃣ Find the client profile associated with this user
+    const clientProfile = await ClientProfile.findOne({ where: { user_id } });
+    const client_id = clientProfile ? (clientProfile as any).id : null;
+
+    // 2️⃣ Build the OR condition
+    const whereConditions: any[] = [{ user_id: user_id }];
+    if (client_id) {
+      whereConditions.push({ client_id: client_id });
+    }
+
+    // 3️⃣ Fetch bookings with count for pagination support
+    const { rows, count } = await Booking.findAndCountAll({
+      where: {
+        [Op.or]: whereConditions,
+      },
+      limit: options.limit ?? 100,
+      offset: options.offset ?? 0,
       include: [
         {
           model: Service,
@@ -44,7 +61,9 @@ export const BookingService = {
           ],
         },
       ],
-      order: [["createdAt", "DESC"]],
+      order: options.order ?? [["createdAt", "DESC"]],
     });
+
+    return { rows, count };
   },
 };
