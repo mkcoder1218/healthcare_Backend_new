@@ -17,6 +17,10 @@ router.post(
   "/payment/create-order",
   asyncHandler(PaymentController.createOrder),
 );
+router.post(
+  "/payment/confirm-booking",
+  asyncHandler(PaymentController.confirmBookingPayment),
+);
 router.get("/payment/status", asyncHandler(PaymentController.checkStatus));
 router.get("/payment/receipt", asyncHandler(PaymentController.getReceipt));
 router.post("/payment/payout", asyncHandler(PaymentController.payout));

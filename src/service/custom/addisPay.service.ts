@@ -5,6 +5,9 @@ const baseUrl =
     ? "https://api.addispay.et/checkout-api/v1"
     : "https://uat.api.addispay.et/checkout-api/v1";
 
+// For environments where fetch is not global (older Node.js)
+// Note: In Node 18+ fetch is global.
+
 export interface PaymentData {
   redirect_url?: string;
   cancel_url?: string;
