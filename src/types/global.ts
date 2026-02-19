@@ -1,9 +1,8 @@
 export type CrudAction = "create" | "read" | "update" | "delete";
 
-
 export type FieldType =
   | {
-      type: "STRING" | "INTEGER" | "BOOLEAN" | "TEXT" | "DATE"|"UUID";
+      type: "STRING" | "INTEGER" | "BOOLEAN" | "TEXT" | "DATE" | "UUID";
       allowNull?: boolean;
       unique?: boolean;
       default?: any;
@@ -13,20 +12,21 @@ export type FieldType =
       allowNull?: boolean;
       default?: any;
       values: string[];
-      unique?: boolean; 
+      unique?: boolean;
     }
   | {
       type: "ARRAY";
       allowNull?: boolean;
       of: "STRING" | "INTEGER" | "UUID";
-      unique?: boolean;  // define element type
+      unique?: boolean;
+      default?: any;
     }
-| {
-    type: "JSON";
-    allowNull?: boolean;
-     default?: any;  
-     unique?: boolean; 
-  }
+  | {
+      type: "JSON";
+      allowNull?: boolean;
+      default?: any;
+      unique?: boolean;
+    };
 
 export type Relation = {
   type: "hasOne" | "hasMany" | "belongsTo" | "belongsToMany";
@@ -37,11 +37,10 @@ export type Relation = {
 export type ModelDefinition = {
   fields: Record<string, FieldType>;
   relations?: Relation[];
-  routes:string[]
-    auth?: Partial<Record<CrudAction, boolean>>; 
-
+  routes: string[];
+  auth?: Partial<Record<CrudAction, boolean>>;
 };
 
 export const GLOBAL_STATUS = ["Pending", "Idle", "Failed", "Success"] as const;
 
-export type GlobalStatus = typeof GLOBAL_STATUS[number];
+export type GlobalStatus = (typeof GLOBAL_STATUS)[number];

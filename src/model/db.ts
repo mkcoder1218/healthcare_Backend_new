@@ -87,7 +87,8 @@ for (const modelName in modelDefs) {
         type = DataTypes.STRING;
     }
 
-    fields[key] = { ...field, type };
+    const { default: defaultValue, ...otherFieldProps } = field as any;
+    fields[key] = { ...otherFieldProps, type, defaultValue };
   }
 
   createdModels[modelName] = sequelize.define(modelName, fields, {

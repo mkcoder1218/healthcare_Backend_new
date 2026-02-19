@@ -186,7 +186,7 @@ export const model: Record<string, ModelDefinition> = {
   Booking: {
     fields: {
       client_id: { type: "UUID", allowNull: false },
-      user_id: { type: "UUID", allowNull: false },
+      user_id: { type: "UUID", allowNull: true },
       professional_id: { type: "UUID", allowNull: false },
       service_id: { type: "UUID", allowNull: false },
       date: { type: "STRING", allowNull: false },
