@@ -10,6 +10,7 @@ export const model: Record<string, ModelDefinition> = {
       role_id: { type: "UUID", allowNull: true }, // links to Role
 
       status: { type: "STRING", allowNull: false, default: "Active" },
+      point: { type: "INTEGER", allowNull: false, default: 0 },
     },
     relations: [
       {
@@ -185,6 +186,7 @@ export const model: Record<string, ModelDefinition> = {
   Booking: {
     fields: {
       client_id: { type: "UUID", allowNull: false },
+      user_id: { type: "UUID", allowNull: false },
       professional_id: { type: "UUID", allowNull: false },
       service_id: { type: "UUID", allowNull: false },
       date: { type: "STRING", allowNull: false },
@@ -196,6 +198,7 @@ export const model: Record<string, ModelDefinition> = {
         default: "Pending",
       },
       notes: { type: "STRING", allowNull: true },
+      is_checked_in: { type: "BOOLEAN", allowNull: false, default: false },
       payment_status: {
         type: "ENUM",
         values: ["Paid", "Unpaid", "Pending", "Failed"],
@@ -267,6 +270,31 @@ export const model: Record<string, ModelDefinition> = {
       title: { type: "STRING", allowNull: false },
       message: { type: "STRING", allowNull: false },
       read: { type: "BOOLEAN", allowNull: false, default: false },
+    },
+    relations: [
+      { type: "belongsTo", model: "User", options: { foreignKey: "user_id" } },
+    ],
+    routes: ["create", "read", "update", "delete"],
+    auth: { create: true, read: true, update: true, delete: true },
+  },
+  Points: {
+    fields: {
+      point: { type: "INTEGER", allowNull: false, default: 0 },
+      description: { type: "STRING", allowNull: true },
+    },
+    routes: ["create", "read", "update", "delete"],
+    auth: { create: true, read: true, update: true, delete: true },
+  },
+  PointTransaction: {
+    fields: {
+      user_id: { type: "UUID", allowNull: false },
+      amount: { type: "INTEGER", allowNull: false },
+      type: {
+        type: "ENUM",
+        values: ["Reward", "Redeem"],
+        allowNull: false,
+      },
+      description: { type: "STRING", allowNull: true },
     },
     relations: [
       { type: "belongsTo", model: "User", options: { foreignKey: "user_id" } },
