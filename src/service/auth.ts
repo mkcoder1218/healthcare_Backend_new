@@ -13,8 +13,13 @@ interface UserAttributes {
   id: string;
   name: string;
   email: string;
+  phone_number: string;
   password: string;
   role_id: string;
+  status: string;
+  role?: any;
+  clientProfile?: any;
+  professionalProfile?: any;
 }
 
 type UserModel = Model<UserAttributes> & UserAttributes;
@@ -60,6 +65,11 @@ export const authService = {
 
     const userInstance = await createdModels.User.findOne({
       where: { id: decoded.id },
+      include: [
+        { model: createdModels.Role, as: "role" },
+        { model: createdModels.ClientProfile, as: "clientProfile" },
+        { model: createdModels.ProfessionalProfile, as: "professionalProfile" },
+      ],
     });
     if (!userInstance) {
       throw new AuthError("User not found");
@@ -171,7 +181,11 @@ export const authService = {
     // Get user as plain object
     const userInstance = await createdModels.User.findOne({
       where: { phone_number },
-      include: [{ model: createdModels.Role, as: "role" }],
+      include: [
+        { model: createdModels.Role, as: "role" },
+        { model: createdModels.ClientProfile, as: "clientProfile" },
+        { model: createdModels.ProfessionalProfile, as: "professionalProfile" },
+      ],
     });
 
     if (!userInstance) throw new Error("Invalid credentials");
