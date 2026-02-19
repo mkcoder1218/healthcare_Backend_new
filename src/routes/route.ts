@@ -25,6 +25,18 @@ router.get("/payment/status", asyncHandler(PaymentController.checkStatus));
 router.get("/payment/receipt", asyncHandler(PaymentController.getReceipt));
 router.post("/payment/payout", asyncHandler(PaymentController.payout));
 
+/** Booking custom routes */
+router.get(
+  "/booking/my-bookings",
+  authenticateToken(process.env.JWT_SECRET!),
+  asyncHandler(BookingController.getMyBookings),
+);
+router.post(
+  "/booking/:id/checkin",
+  authenticateToken(process.env.JWT_SECRET!),
+  asyncHandler(BookingController.checkIn),
+);
+
 /** Auth routes (public) */
 router.post("/auth/register", asyncHandler(authController.register));
 router.post("/auth/login", asyncHandler(authController.login));

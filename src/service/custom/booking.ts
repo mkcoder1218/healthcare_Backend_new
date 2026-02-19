@@ -18,4 +18,31 @@ export const BookingService = {
 
     return booking;
   },
+
+  async getMyBookings(user_id: string) {
+    const Booking = sequelize.models.Booking;
+    const Service = sequelize.models.Service;
+    const ProfessionalProfile = sequelize.models.ProfessionalProfile;
+    const User = sequelize.models.User;
+
+    return await Booking.findAll({
+      where: { user_id },
+      include: [
+        {
+          model: Service,
+        },
+        {
+          model: ProfessionalProfile,
+          include: [
+            {
+              model: User,
+              attributes: ["name", "phone_number"],
+              as: "user",
+            },
+          ],
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+  },
 };

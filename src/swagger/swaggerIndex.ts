@@ -126,6 +126,33 @@ const generatePaths = () => {
       },
     },
   };
+  paths["/booking/my-bookings"] = {
+    get: {
+      summary: "Fetch my bookings",
+      tags: ["booking"],
+      security: [{ bearerAuth: [] }],
+      responses: {
+        200: {
+          description: "List of bookings for the authenticated user",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  success: { type: "boolean" },
+                  bookings: {
+                    type: "array",
+                    items: { $ref: "#/components/schemas/Booking" },
+                  },
+                },
+              },
+            },
+          },
+        },
+        401: { description: "Unauthorized" },
+      },
+    },
+  };
 
   // ================== PAYMENT ROUTES ==================
   paths["/payment/create-order"] = {
