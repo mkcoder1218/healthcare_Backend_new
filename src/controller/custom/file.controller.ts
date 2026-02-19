@@ -26,7 +26,7 @@ router.post("/upload", upload.single("file"), async (req, res) => {
     if (!req.file) {
       res.status(400).json({ error: "No File uploaded" });
     }
-    const saveFile = await fileService.fileSave(req.file);
+    const saveFile = await fileService.fileSave(req.file, req.body);
     res.json(saveFile);
   } catch (err) {
     console.log(err);
