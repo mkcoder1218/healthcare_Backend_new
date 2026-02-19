@@ -30,9 +30,11 @@ export const BookingService = {
       include: [
         {
           model: Service,
+          as: "service",
         },
         {
           model: ProfessionalProfile,
+          as: "professional",
           include: [
             {
               model: User,

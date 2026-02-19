@@ -67,7 +67,11 @@ export const model: Record<string, ModelDefinition> = {
       },
     },
     relations: [
-      { type: "belongsTo", model: "User", options: { foreignKey: "user_id" } },
+      {
+        type: "belongsTo",
+        model: "User",
+        options: { foreignKey: "user_id", as: "user" },
+      },
       {
         type: "belongsTo",
         model: "File",
@@ -99,7 +103,11 @@ export const model: Record<string, ModelDefinition> = {
       client_level_id: { type: "UUID", allowNull: true },
     },
     relations: [
-      { type: "belongsTo", model: "User", options: { foreignKey: "user_id" } },
+      {
+        type: "belongsTo",
+        model: "User",
+        options: { foreignKey: "user_id", as: "user" },
+      },
       {
         type: "belongsTo",
         model: "ClientTypes",
@@ -210,17 +218,17 @@ export const model: Record<string, ModelDefinition> = {
       {
         type: "belongsTo",
         model: "ClientProfile",
-        options: { foreignKey: "client_id" },
+        options: { foreignKey: "client_id", as: "client" },
       },
       {
         type: "belongsTo",
         model: "ProfessionalProfile",
-        options: { foreignKey: "professional_id" },
+        options: { foreignKey: "professional_id", as: "professional" },
       },
       {
         type: "belongsTo",
         model: "Service",
-        options: { foreignKey: "service_id" },
+        options: { foreignKey: "service_id", as: "service" },
       },
     ],
     routes: ["create", "read", "update", "delete"],
