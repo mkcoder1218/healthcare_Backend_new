@@ -49,8 +49,8 @@ export const validationSchemas: Record<string, Joi.ObjectSchema> = {
     age: Joi.number().integer().min(0).optional(),
     sex: Joi.string().valid("Male", "Female", "Other").optional(),
     marital_status: Joi.string().optional().allow(null),
-    client_type_id: Joi.string().optional().allow(null),
-    client_level_id: Joi.string().optional().allow(null),
+    client_type_id: Joi.string().uuid().optional().allow(null),
+    client_level_id: Joi.string().uuid().optional().allow(null),
     residency: Joi.string().optional().allow(null),
     academic_level: Joi.string().optional().allow(null),
     work_status: Joi.string().optional().allow(null),
@@ -65,7 +65,9 @@ export const validationSchemas: Record<string, Joi.ObjectSchema> = {
     description: Joi.string().optional().allow(null),
     price: Joi.number().min(0).required(),
     duration: Joi.string().required(),
-    category_id: Joi.string().optional().allow(null),
+    category_id: Joi.string().uuid().optional().allow(null),
+    file_id: Joi.string().uuid().optional().allow(null),
+    type_id: Joi.string().uuid().optional().allow(null),
   }),
 
   Booking: Joi.object({
@@ -84,7 +86,9 @@ export const validationSchemas: Record<string, Joi.ObjectSchema> = {
   File: Joi.object({
     url: Joi.string().uri().required(),
     description: Joi.string().optional().allow(null),
-    type: Joi.string().valid("License", "Degree", "ProfilePic", "Video").optional(),
+    type: Joi.string()
+      .valid("License", "Degree", "ProfilePic", "Video")
+      .optional(),
   }),
 
   Notification: Joi.object({
@@ -95,18 +99,36 @@ export const validationSchemas: Record<string, Joi.ObjectSchema> = {
 };
 
 export const validationUpdateSchemas: Record<string, Joi.ObjectSchema> = {
-  User: validationSchemas.User.fork(Object.keys(validationSchemas.User.describe().keys), (schema) => schema.optional()),
-  Role: validationSchemas.Role.fork(Object.keys(validationSchemas.Role.describe().keys), (schema) => schema.optional()),
+  User: validationSchemas.User.fork(
+    Object.keys(validationSchemas.User.describe().keys),
+    (schema) => schema.optional(),
+  ),
+  Role: validationSchemas.Role.fork(
+    Object.keys(validationSchemas.Role.describe().keys),
+    (schema) => schema.optional(),
+  ),
   ProfessionalProfile: validationSchemas.ProfessionalProfile.fork(
     Object.keys(validationSchemas.ProfessionalProfile.describe().keys),
-    (schema) => schema.optional()
+    (schema) => schema.optional(),
   ),
   ClientProfile: validationSchemas.ClientProfile.fork(
     Object.keys(validationSchemas.ClientProfile.describe().keys),
-    (schema) => schema.optional()
+    (schema) => schema.optional(),
   ),
-  Service: validationSchemas.Service.fork(Object.keys(validationSchemas.Service.describe().keys), (schema) => schema.optional()),
-  Booking: validationSchemas.Booking.fork(Object.keys(validationSchemas.Booking.describe().keys), (schema) => schema.optional()),
-  File: validationSchemas.File.fork(Object.keys(validationSchemas.File.describe().keys), (schema) => schema.optional()),
-  Notification: validationSchemas.Notification.fork(Object.keys(validationSchemas.Notification.describe().keys), (schema) => schema.optional()),
+  Service: validationSchemas.Service.fork(
+    Object.keys(validationSchemas.Service.describe().keys),
+    (schema) => schema.optional(),
+  ),
+  Booking: validationSchemas.Booking.fork(
+    Object.keys(validationSchemas.Booking.describe().keys),
+    (schema) => schema.optional(),
+  ),
+  File: validationSchemas.File.fork(
+    Object.keys(validationSchemas.File.describe().keys),
+    (schema) => schema.optional(),
+  ),
+  Notification: validationSchemas.Notification.fork(
+    Object.keys(validationSchemas.Notification.describe().keys),
+    (schema) => schema.optional(),
+  ),
 };
