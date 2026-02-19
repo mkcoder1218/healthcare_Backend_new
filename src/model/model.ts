@@ -138,12 +138,12 @@ export const model: Record<string, ModelDefinition> = {
       {
         type: "belongsTo",
         model: "ServiceCategory",
-        options: { foreignKey: "category_id" },
+        options: { foreignKey: "category_id", as: "category" },
       },
       {
         type: "belongsTo",
         model: "ServiceType",
-        options: { foreignKey: "type_id" },
+        options: { foreignKey: "type_id", as: "type" },
       },
       {
         type: "belongsTo",
