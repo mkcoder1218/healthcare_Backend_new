@@ -145,6 +145,11 @@ export const model: Record<string, ModelDefinition> = {
         model: "ServiceType",
         options: { foreignKey: "type_id" },
       },
+      {
+        type: "belongsTo",
+        model: "File",
+        options: { foreignKey: "file_id", as: "file" },
+      },
     ],
     routes: ["create", "read", "update", "delete"],
     auth: { create: true, read: true, update: true, delete: true },
@@ -235,6 +240,11 @@ export const model: Record<string, ModelDefinition> = {
         type: "hasMany",
         model: "ProfessionalProfile",
         options: { foreignKey: "degree_file_id" },
+      },
+      {
+        type: "hasMany",
+        model: "Service",
+        options: { foreignKey: "file_id" },
       },
     ],
     routes: ["create", "read", "update", "delete"],
