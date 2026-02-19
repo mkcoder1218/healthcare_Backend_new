@@ -55,8 +55,8 @@ export const model: Record<string, ModelDefinition> = {
     fields: {
       user_id: { type: "UUID", allowNull: false },
       profession: { type: "STRING", allowNull: false },
-      license_file_id: { type: "UUID", allowNull: false },
-      degree_file_id: { type: "UUID", allowNull: false },
+      license_file_id: { type: "UUID", allowNull: true },
+      degree_file_id: { type: "UUID", allowNull: true },
       bio: { type: "STRING", allowNull: true },
       verification_status: {
         type: "ENUM",

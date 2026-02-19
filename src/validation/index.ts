@@ -36,12 +36,13 @@ export const validationSchemas: Record<string, Joi.ObjectSchema> = {
   ProfessionalProfile: Joi.object({
     user_id: Joi.string().uuid().required(),
     profession: Joi.string().required(),
-    license_file_id: Joi.string().uuid().required(),
-    degree_file_id: Joi.string().uuid().required(),
+    license_file_id: Joi.string().uuid().optional().allow(null),
+    degree_file_id: Joi.string().uuid().optional().allow(null),
     bio: Joi.string().optional().allow(null),
     verification_status: Joi.string()
       .valid("Pending", "Verified", "Rejected")
-      .required(),
+      .optional()
+      .default("Pending"),
   }),
 
   ClientProfile: Joi.object({
@@ -84,7 +85,7 @@ export const validationSchemas: Record<string, Joi.ObjectSchema> = {
   }),
 
   File: Joi.object({
-    url: Joi.string().uri().required(),
+    url: Joi.string().required(),
     description: Joi.string().optional().allow(null),
     type: Joi.string()
       .valid("License", "Degree", "ProfilePic", "Video")
