@@ -54,8 +54,19 @@ export class AddisPayService {
    */
   static async createOrder(paymentData: PaymentData) {
     const url = `${baseUrl}/create-order`;
+
+    // AddisPay requires total_amount and amount as a string with 2 decimals e.g. "100.00"
+    const normalizedData = {
+      ...paymentData,
+      total_amount: parseFloat(String(paymentData.total_amount)).toFixed(2),
+      order_detail: {
+        ...paymentData.order_detail,
+        amount: parseFloat(String(paymentData.order_detail.amount)).toFixed(2),
+      },
+    };
+
     const payload = {
-      data: paymentData,
+      data: normalizedData,
       message: "all in all good experience",
     };
 
