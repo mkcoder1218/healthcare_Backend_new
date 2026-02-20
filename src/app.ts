@@ -115,7 +115,7 @@ io.on("connection", (socket) => {
 });
 
 // Sync DB and start server
-sequelize.sync({ alter: true }).then(() => {
+sequelize.sync().then(() => {
   console.log("Database synced");
   httpServer.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
