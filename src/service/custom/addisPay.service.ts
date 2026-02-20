@@ -78,9 +78,10 @@ export class AddisPayService {
     };
 
     const customerUrls = [
+      `${baseUrl}/customer/create`,
+      `${origin}/checkout-api/v1/customer/create`,
       `${origin}/customer/create`,
       "https://api.addispay.et/customer/create",
-      "https://uat.api.addispay.et/customer/create",
     ];
 
     const headerCandidates = [
@@ -97,6 +98,7 @@ export class AddisPayService {
     ];
 
     let lastError = "";
+    let onlyNotFoundErrors = true;
 
     for (const url of customerUrls) {
       for (const headers of headerCandidates) {
@@ -113,6 +115,10 @@ export class AddisPayService {
             return;
           }
 
+          if (res.status !== 404) {
+            onlyNotFoundErrors = false;
+          }
+
           const normalizedText = text.toLowerCase();
           if (
             normalizedText.includes("already exist") ||
@@ -127,6 +133,13 @@ export class AddisPayService {
           lastError = `customer create failed (${url}): ${error?.message || "Unknown error"}`;
         }
       }
+    }
+
+    // Some environments do not expose customer creation endpoint in UAT.
+    // If all attempts returned 404, continue and let create-order provide canonical error.
+    if (onlyNotFoundErrors) {
+      console.warn("[AddisPay] Customer create endpoint not found on attempted URLs. Proceeding to create-order.");
+      return;
     }
 
     throw new Error(lastError || "Customer creation failed");
@@ -167,8 +180,12 @@ export class AddisPayService {
     };
 
     try {
-      // AddisPay returns "customer ... doesnot exist" unless the customer is created first.
-      await this.createCustomerIfMissing(paymentData);
+      // Best-effort customer creation: do not block order path on endpoint mismatch (e.g., UAT 404).
+      try {
+        await this.createCustomerIfMissing(paymentData);
+      } catch (customerError: any) {
+        console.warn("[AddisPay] Customer pre-create failed, proceeding to create-order:", customerError?.message || customerError);
+      }
 
       const response = await fetch(url, options);
       if (!response.ok) {
@@ -261,4 +278,5 @@ export class AddisPayService {
     }
   }
 }
+
 
