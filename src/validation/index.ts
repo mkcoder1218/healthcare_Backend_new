@@ -5,7 +5,7 @@ import { GLOBAL_STATUS } from "../types/global";
 export const validationSchemas: Record<string, Joi.ObjectSchema> = {
   User: Joi.object({
     name: Joi.string().min(3).max(50).required(),
-    email: Joi.string().email().required(),
+    email: Joi.string().email().optional().allow(null),
     phone_number: Joi.string().optional().allow(null),
     password: Joi.string().min(4).required(),
     role_id: Joi.string().uuid().required(),
