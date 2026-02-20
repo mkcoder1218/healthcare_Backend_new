@@ -1,6 +1,7 @@
 // service.ts
 import { createdModels } from "../model/db";
 import { Model, Transaction, FindOptions, Op, ModelStatic } from "sequelize";
+import bcrypt from "bcryptjs";
 
 interface ServiceOptions {
   transaction?: Transaction;
@@ -16,7 +17,7 @@ interface GetAllOptions extends ServiceOptions {
 }
 
 export const generateService = <T extends Model>(modelName: string) => {
-const ModelClass = createdModels[modelName] as ModelStatic<Model>;
+  const ModelClass = createdModels[modelName] as ModelStatic<Model>;
 
   if (!ModelClass) throw new Error(`Model "${modelName}" does not exist`);
 
@@ -33,7 +34,15 @@ const ModelClass = createdModels[modelName] as ModelStatic<Model>;
     // CREATE
     create: async (data: Partial<T>, options?: ServiceOptions) => {
       try {
-        return await ModelClass.create(data, { transaction: options?.transaction });
+        if (modelName === "User" && (data as any).password) {
+          (data as any).password = await bcrypt.hash(
+            (data as any).password,
+            10,
+          );
+        }
+        return await ModelClass.create(data, {
+          transaction: options?.transaction,
+        });
       } catch (err: any) {
         throw new Error(`Failed to create ${modelName}: ${err.message}`);
       }
@@ -42,7 +51,9 @@ const ModelClass = createdModels[modelName] as ModelStatic<Model>;
     // BULK CREATE
     bulkCreate: async (data: Partial<T>[], options?: ServiceOptions) => {
       try {
-        return await ModelClass.bulkCreate(data, { transaction: options?.transaction });
+        return await ModelClass.bulkCreate(data, {
+          transaction: options?.transaction,
+        });
       } catch (err: any) {
         throw new Error(`Failed to bulk create ${modelName}: ${err.message}`);
       }
@@ -64,26 +75,31 @@ const ModelClass = createdModels[modelName] as ModelStatic<Model>;
         throw new Error(`Failed to get all ${modelName}: ${err.message}`);
       }
     },
-getAllWithCount: async (options: GetAllOptions = {}) => {
-  try {
-    const { rows, count } = await ModelClass.findAndCountAll({
-      limit: options.limit ?? 100,
-      offset: options.offset ?? 0,
-      where: options.where ?? {},
-      order: options.order ?? [["createdAt", "DESC"]],
-      include: options.include ?? [],
-      paranoid: options.paranoid ?? true,
-      transaction: options.transaction,
-    });
+    getAllWithCount: async (options: GetAllOptions = {}) => {
+      try {
+        const { rows, count } = await ModelClass.findAndCountAll({
+          limit: options.limit ?? 100,
+          offset: options.offset ?? 0,
+          where: options.where ?? {},
+          order: options.order ?? [["createdAt", "DESC"]],
+          include: options.include ?? [],
+          paranoid: options.paranoid ?? true,
+          transaction: options.transaction,
+        });
 
-    return { rows, count };
-  } catch (err: any) {
-    throw new Error(`Failed to get all ${modelName} with count: ${err.message}`);
-  }
-},
+        return { rows, count };
+      } catch (err: any) {
+        throw new Error(
+          `Failed to get all ${modelName} with count: ${err.message}`,
+        );
+      }
+    },
 
     // GET ONE by primary key
-    getOne: async (id: string | number, options?: { include?: any[] } & ServiceOptions) => {
+    getOne: async (
+      id: string | number,
+      options?: { include?: any[] } & ServiceOptions,
+    ) => {
       try {
         const instance = await ModelClass.findByPk(id, {
           paranoid: options?.paranoid ?? true,
@@ -98,17 +114,33 @@ getAllWithCount: async (options: GetAllOptions = {}) => {
     },
 
     // UPDATE by primary key
-    update: async (id: string | number, data: Partial<T>, options?: ServiceOptions) => {
+    update: async (
+      id: string | number,
+      data: Partial<T>,
+      options?: ServiceOptions,
+    ) => {
       try {
         const instance = await findById(id, options);
-        return await instance.update(data, { transaction: options?.transaction });
+        if (modelName === "User" && (data as any).password) {
+          (data as any).password = await bcrypt.hash(
+            (data as any).password,
+            10,
+          );
+        }
+        return await instance.update(data, {
+          transaction: options?.transaction,
+        });
       } catch (err: any) {
         throw new Error(`Failed to update ${modelName}: ${err.message}`);
       }
     },
 
     // BULK UPDATE by where condition
-    bulkUpdate: async (data: Partial<T>, where: Record<string, any>, options?: ServiceOptions) => {
+    bulkUpdate: async (
+      data: Partial<T>,
+      where: Record<string, any>,
+      options?: ServiceOptions,
+    ) => {
       try {
         return await ModelClass.update(data, {
           where,
@@ -128,21 +160,28 @@ getAllWithCount: async (options: GetAllOptions = {}) => {
         throw new Error(`Failed to delete ${modelName}: ${err.message}`);
       }
     },
-getMe: async (userId: string | number, options?: ServiceOptions & { include?: any[] }) => {
-  try {
-    const instance = await ModelClass.findByPk(userId, {
-      paranoid: options?.paranoid ?? true,
-      include: options?.include ?? [],
-      transaction: options?.transaction,
-    });
-    if (!instance) throw new Error(`${modelName} with id ${userId} not found`);
-    return instance as T;
-  } catch (err: any) {
-    throw new Error(`Failed to get ${modelName}: ${err.message}`);
-  }
-},
+    getMe: async (
+      userId: string | number,
+      options?: ServiceOptions & { include?: any[] },
+    ) => {
+      try {
+        const instance = await ModelClass.findByPk(userId, {
+          paranoid: options?.paranoid ?? true,
+          include: options?.include ?? [],
+          transaction: options?.transaction,
+        });
+        if (!instance)
+          throw new Error(`${modelName} with id ${userId} not found`);
+        return instance as T;
+      } catch (err: any) {
+        throw new Error(`Failed to get ${modelName}: ${err.message}`);
+      }
+    },
     // BULK DELETE by where condition
-    bulkDelete: async (where: Record<string, any>, options?: ServiceOptions) => {
+    bulkDelete: async (
+      where: Record<string, any>,
+      options?: ServiceOptions,
+    ) => {
       try {
         return await ModelClass.destroy({
           where,
@@ -156,7 +195,9 @@ getMe: async (userId: string | number, options?: ServiceOptions & { include?: an
     // RESTORE soft-deleted record
     restore: async (id: string | number, options?: ServiceOptions) => {
       if (!ModelClass.options.paranoid)
-        throw new Error(`${modelName} does not support restore (paranoid disabled)`);
+        throw new Error(
+          `${modelName} does not support restore (paranoid disabled)`,
+        );
 
       try {
         const instance = await ModelClass.findByPk(id, {

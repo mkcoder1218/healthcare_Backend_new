@@ -128,22 +128,5 @@ for (const modelName in modelDefs) {
       }
     });
   }
-
-  // --- ADDED: Hooks for Password Hashing ---
-  if (modelName === "User") {
-    createdModels[modelName].addHook("beforeCreate", async (user: any) => {
-      if (user.password) {
-        const bcrypt = require("bcryptjs");
-        user.password = await bcrypt.hash(user.password, 10);
-      }
-    });
-
-    createdModels[modelName].addHook("beforeUpdate", async (user: any) => {
-      if (user.changed("password")) {
-        const bcrypt = require("bcryptjs");
-        user.password = await bcrypt.hash(user.password, 10);
-      }
-    });
-  }
 }
 export default sequelize;
