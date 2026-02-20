@@ -48,20 +48,6 @@ export interface PayoutPaymentData {
   tx_ref: string;
 }
 
-/**
- * Normalizes phone numbers to '09...' format for AddisPay
- */
-const normalizePhoneForAddisPay = (phone: string): string => {
-  if (!phone) return phone;
-  let cleaned = phone.replace(/\D/g, "");
-  if (cleaned.startsWith("251")) {
-    cleaned = cleaned.substring(3);
-  } else if (cleaned.startsWith("0")) {
-    cleaned = cleaned.substring(1);
-  }
-  return "0" + cleaned; // AddisPay usually expects 09...
-};
-
 export class AddisPayService {
   /**
    * Create an order to AddisPay server
@@ -72,7 +58,6 @@ export class AddisPayService {
     // AddisPay requires total_amount and amount as a string with 2 decimals e.g. "100.00"
     const normalizedData = {
       ...paymentData,
-      phone_number: normalizePhoneForAddisPay(paymentData.phone_number),
       total_amount: parseFloat(String(paymentData.total_amount)).toFixed(2),
       order_detail: {
         ...paymentData.order_detail,

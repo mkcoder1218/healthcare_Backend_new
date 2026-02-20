@@ -44,20 +44,6 @@ class AuthError extends Error {
     this.name = "AuthError";
   }
 }
-
-/**
- * Normalizes Ethiopian phone numbers to a standard 9-digit format (e.g., 911223344)
- */
-const normalizePhone = (phone: string): string => {
-  if (!phone) return phone;
-  let cleaned = phone.replace(/\D/g, ""); // Remove all non-numeric characters
-  if (cleaned.startsWith("251")) {
-    cleaned = cleaned.substring(3);
-  } else if (cleaned.startsWith("0")) {
-    cleaned = cleaned.substring(1);
-  }
-  return cleaned;
-};
 export const authService = {
   async getUserFromToken(req: Request): Promise<UserAttributes> {
     const authHeader = req.get("Authorization");
@@ -101,16 +87,12 @@ export const authService = {
       clientProfile,
     } = payload;
 
-    const normalized_phone = normalizePhone(phone_number);
-
     const existingUser = await createdModels.User.findOne({
-      where: { phone_number: normalized_phone },
+      where: { phone_number },
       raw: true,
     });
 
     if (existingUser) throw new Error("Phone number already exists");
-
-    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
     // Use a transaction to ensure user + profile consistency
     const transaction = await sequelize.transaction();
@@ -128,8 +110,8 @@ export const authService = {
       const user = await createdModels.User.create(
         {
           name,
-          phone_number: normalized_phone,
-          password: hashedPassword,
+          phone_number,
+          password, // Hooks in db.ts will handle hashing
           role_id,
           status: "Active",
         },
@@ -193,11 +175,10 @@ export const authService = {
 
   async login(payload: LoginPayload) {
     const { phone_number, password } = payload;
-    const normalized_phone = normalizePhone(phone_number);
 
     // Get user as plain object
     const userInstance = await createdModels.User.findOne({
-      where: { phone_number: normalized_phone },
+      where: { phone_number },
       include: [
         { model: createdModels.Role, as: "role" },
         { model: createdModels.ClientProfile, as: "clientProfile" },
@@ -215,7 +196,7 @@ export const authService = {
 
     // Generate JWT
     const token = jwt.sign(
-      { id: user.id, phone_number: user.phone_number, role_id: user.role_id },
+      { id: user.id, phone_number: user.email, role_id: user.role_id },
       JWT_SECRET,
       { expiresIn: "7d" },
     );
