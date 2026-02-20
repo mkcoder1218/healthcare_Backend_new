@@ -50,6 +50,10 @@ export const BookingService = {
           as: "service",
         },
         {
+          model: ClientProfile,
+          as: "client",
+        },
+        {
           model: ProfessionalProfile,
           as: "professional",
           include: [
