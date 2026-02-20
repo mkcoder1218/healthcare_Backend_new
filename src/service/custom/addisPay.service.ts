@@ -1,16 +1,16 @@
 const apiKey =
   process.env.ADDISPAY_API_KEY || "**********************************";
 
-// UAT key → always use UAT base URL until you switch to a live key
+// UAT key -> always use UAT base URL until you switch to a live key
 const baseUrl = "https://uat.api.addispay.et/checkout-api/v1";
 
-// Debug log — confirms what key + URL is being used (check your Render logs)
+// Debug log - confirms what key + URL is being used (check your Render logs)
 console.log("[AddisPay] Base URL:", baseUrl);
 console.log(
   "[AddisPay] API Key status:",
   apiKey !== "**********************************"
-    ? "✅ Real key loaded"
-    : "❌ Placeholder key — set ADDISPAY_API_KEY in Render Environment",
+    ? "Real key loaded"
+    : "Placeholder key - set ADDISPAY_API_KEY in Render Environment",
 );
 
 export interface PaymentData {
@@ -49,15 +49,101 @@ export interface PayoutPaymentData {
 }
 
 export class AddisPayService {
+  private static normalizePhoneNumber(phone: string) {
+    const digitsOnly = String(phone || "").replace(/\D/g, "");
+
+    if (digitsOnly.startsWith("251") && digitsOnly.length >= 12) {
+      return digitsOnly;
+    }
+
+    if (digitsOnly.startsWith("0") && digitsOnly.length >= 10) {
+      return `251${digitsOnly.slice(1)}`;
+    }
+
+    if (digitsOnly.startsWith("9") && digitsOnly.length === 9) {
+      return `251${digitsOnly}`;
+    }
+
+    return digitsOnly;
+  }
+
+  private static async createCustomerIfMissing(paymentData: Pick<PaymentData, "phone_number" | "first_name" | "last_name">) {
+    const phone = this.normalizePhoneNumber(paymentData.phone_number);
+    const origin = new URL(baseUrl).origin;
+
+    const customerPayload = {
+      phone,
+      first_name: paymentData.first_name,
+      last_name: paymentData.last_name,
+    };
+
+    const customerUrls = [
+      `${origin}/customer/create`,
+      "https://api.addispay.et/customer/create",
+      "https://uat.api.addispay.et/customer/create",
+    ];
+
+    const headerCandidates = [
+      {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Auth: apiKey,
+      },
+    ];
+
+    let lastError = "";
+
+    for (const url of customerUrls) {
+      for (const headers of headerCandidates) {
+        try {
+          const res = await fetch(url, {
+            method: "POST",
+            headers,
+            body: JSON.stringify(customerPayload),
+          });
+
+          const text = await res.text();
+
+          if (res.ok) {
+            return;
+          }
+
+          const normalizedText = text.toLowerCase();
+          if (
+            normalizedText.includes("already exist") ||
+            normalizedText.includes("already exists") ||
+            normalizedText.includes("customer exists")
+          ) {
+            return;
+          }
+
+          lastError = `customer create failed (${url}): ${text}`;
+        } catch (error: any) {
+          lastError = `customer create failed (${url}): ${error?.message || "Unknown error"}`;
+        }
+      }
+    }
+
+    throw new Error(lastError || "Customer creation failed");
+  }
+
   /**
    * Create an order to AddisPay server
    */
   static async createOrder(paymentData: PaymentData) {
     const url = `${baseUrl}/create-order`;
 
+    const normalizedPhone = this.normalizePhoneNumber(paymentData.phone_number);
+
     // AddisPay requires total_amount and amount as a string with 2 decimals e.g. "100.00"
     const normalizedData = {
       ...paymentData,
+      phone_number: normalizedPhone,
       total_amount: parseFloat(String(paymentData.total_amount)).toFixed(2),
       order_detail: {
         ...paymentData.order_detail,
@@ -81,6 +167,9 @@ export class AddisPayService {
     };
 
     try {
+      // AddisPay returns "customer ... doesnot exist" unless the customer is created first.
+      await this.createCustomerIfMissing(paymentData);
+
       const response = await fetch(url, options);
       if (!response.ok) {
         const errorText = await response.text();
@@ -172,3 +261,4 @@ export class AddisPayService {
     }
   }
 }
+
