@@ -9,6 +9,7 @@ export const validationSchemas: Record<string, Joi.ObjectSchema> = {
     phone_number: Joi.string().optional().allow(null),
     password: Joi.string().min(4).required(),
     role_id: Joi.string().uuid().required(),
+    profile_image_id: Joi.string().uuid().optional().allow(null),
     status: Joi.string().valid("Active", "Inactive").required(),
   }),
 
@@ -73,8 +74,9 @@ export const validationSchemas: Record<string, Joi.ObjectSchema> = {
 
   Booking: Joi.object({
     client_id: Joi.string().uuid().required(),
-    professional_id: Joi.string().uuid().required(),
+    professional_id: Joi.string().uuid().optional().allow(null),
     service_id: Joi.string().uuid().required(),
+    payment_file_id: Joi.string().uuid().optional().allow(null),
     date: Joi.date().required(),
     time: Joi.string().required(),
     status: Joi.string()
@@ -97,7 +99,7 @@ export const validationSchemas: Record<string, Joi.ObjectSchema> = {
     url: Joi.string().required(),
     description: Joi.string().optional().allow(null),
     type: Joi.string()
-      .valid("License", "Degree", "ProfilePic", "Video")
+      .valid("License", "Degree", "ProfilePic", "Profile", "Video")
       .optional(),
   }),
 

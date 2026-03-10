@@ -10,6 +10,7 @@ import { asyncHandler } from "../utils/asyncHandler";
 import { userPointController } from "../controller/custom/userpoint";
 import { BookingController } from "../controller/custom/booking";
 import { PaymentController } from "../controller/custom/payment.controller";
+import { analyticsController } from "../controller/custom/analytics.controller";
 const router = express.Router();
 
 /** Payment routes */
@@ -31,15 +32,28 @@ router.get(
   authenticateToken(process.env.JWT_SECRET!),
   asyncHandler(BookingController.getMyBookings),
 );
+router.get(
+  "/booking/professional-bookings",
+  authenticateToken(process.env.JWT_SECRET!),
+  asyncHandler(BookingController.getProfessionalBookings),
+);
 router.post(
   "/booking/:id/checkin",
   authenticateToken(process.env.JWT_SECRET!),
   asyncHandler(BookingController.checkIn),
 );
 
+/** Dashboard + Analytics (public) */
+router.get("/dashboard/summary", asyncHandler(analyticsController.dashboardSummary));
+router.get("/dashboard/bookings-activity", asyncHandler(analyticsController.bookingsActivity));
+router.get("/dashboard/recent-bookings", asyncHandler(analyticsController.recentBookings));
+router.get("/analytics/demographics", asyncHandler(analyticsController.patientDemographics));
+router.get("/analytics/revenue", asyncHandler(analyticsController.revenueHistory));
+
 /** Auth routes (public) */
 router.post("/auth/register", asyncHandler(authController.register));
 router.post("/auth/login", asyncHandler(authController.login));
+router.post("/auth/forgot-password", asyncHandler(authController.forgotPassword));
 
 /** Protected profile route */
 router.get(

@@ -2,12 +2,16 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    // Rename the table
-    await queryInterface.renameTable('service', 'services');
+    const tables = await queryInterface.showAllTables();
+    if (tables.includes('service') && !tables.includes('services')) {
+      await queryInterface.renameTable('service', 'services');
+    }
   },
 
   down: async (queryInterface, Sequelize) => {
-    // Revert table name
-    await queryInterface.renameTable('service', 'services');
+    const tables = await queryInterface.showAllTables();
+    if (tables.includes('services') && !tables.includes('service')) {
+      await queryInterface.renameTable('services', 'service');
+    }
   },
 };

@@ -70,4 +70,52 @@ export const BookingService = {
 
     return { rows, count };
   },
+
+  async getProfessionalBookings(user_id: string, options: any = {}) {
+    const Booking = sequelize.models.Booking;
+    const Service = sequelize.models.Service;
+    const ProfessionalProfile = sequelize.models.ProfessionalProfile;
+    const ClientProfile = sequelize.models.ClientProfile;
+    const User = sequelize.models.User;
+
+    const professionalProfile = await ProfessionalProfile.findOne({
+      where: { user_id },
+    });
+
+    const professional_id = professionalProfile
+      ? (professionalProfile as any).id
+      : null;
+
+    if (!professional_id) {
+      return { rows: [], count: 0 };
+    }
+
+    const { rows, count } = await Booking.findAndCountAll({
+      where: {
+        professional_id,
+      },
+      limit: options.limit ?? 100,
+      offset: options.offset ?? 0,
+      include: [
+        {
+          model: Service,
+          as: "service",
+        },
+        {
+          model: ClientProfile,
+          as: "client",
+          include: [
+            {
+              model: User,
+              attributes: ["name", "phone_number"],
+              as: "user",
+            },
+          ],
+        },
+      ],
+      order: options.order ?? [["createdAt", "DESC"]],
+    });
+
+    return { rows, count };
+  },
 };

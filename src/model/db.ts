@@ -2,12 +2,18 @@ import { Sequelize, DataTypes, Model, ModelStatic } from "sequelize";
 import { model as modelDefs } from "./model";
 
 import dotenv from "dotenv";
-dotenv.config();
+import path from "path";
+import fs from "fs";
+
+const cwdEnv = path.resolve(process.cwd(), ".env");
+const repoEnv = path.resolve(process.cwd(), "healthcare_Backend_new", ".env");
+const envPath = fs.existsSync(cwdEnv) ? cwdEnv : repoEnv;
+dotenv.config({ path: envPath, override: true });
 
 let sequelize: Sequelize;
 
-if (process.env.NODE_ENV === "production" && process.env.DATABASE_URL) {
-  // Production: Use full URL from Render
+if (process.env.DATABASE_URL) {
+  // Use full URL when provided (works for production or local)
   sequelize = new Sequelize(process.env.DATABASE_URL, {
     dialect: "postgres",
     logging: false,
@@ -19,6 +25,9 @@ if (process.env.NODE_ENV === "production" && process.env.DATABASE_URL) {
     },
   });
 } else {
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("DATABASE_URL is required in production");
+  }
   // Development: Use local Postgres
   if (
     !process.env.DB_NAME ||
@@ -91,10 +100,12 @@ for (const modelName in modelDefs) {
     fields[key] = { ...otherFieldProps, type, defaultValue };
   }
 
+  const tableName = modelName === "Service" ? "services" : undefined;
   createdModels[modelName] = sequelize.define(modelName, fields, {
     timestamps: true,
     paranoid: true,
     underscored: true,
+    ...(tableName ? { tableName } : {}),
   });
 }
 

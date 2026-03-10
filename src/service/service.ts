@@ -40,9 +40,92 @@ export const generateService = <T extends Model>(modelName: string) => {
             10,
           );
         }
-        return await ModelClass.create(data, {
+        const created = await ModelClass.create(data, {
           transaction: options?.transaction,
         });
+        if (modelName === "Booking") {
+          try {
+            const ClientProfile = createdModels.ClientProfile;
+            const Notification = createdModels.Notification;
+            const Role = createdModels.Role;
+            const User = createdModels.User;
+
+            const clientProfile = await ClientProfile.findByPk(
+              (created as any).client_id,
+            );
+            const clientUserId = (clientProfile as any)?.user_id;
+
+            if (clientUserId) {
+              await Notification.create({
+                user_id: clientUserId,
+                title: "Booking created",
+                message:
+                  "Your booking was created successfully. Awaiting admin assignment.",
+              });
+              (global as any).io
+                ?.to(`user:${clientUserId}`)
+                .emit("notification", {
+                  title: "Booking created",
+                  message:
+                    "Your booking was created successfully. Awaiting admin assignment.",
+                });
+            }
+
+            const adminRole = await Role.findOne({
+              where: { name: "Admin" },
+            });
+            if (adminRole) {
+              const admins = await User.findAll({
+                where: { role_id: (adminRole as any).id },
+              });
+              await Promise.all(
+                admins.map((admin: any) =>
+                  Notification.create({
+                    user_id: admin.id,
+                    title: "New booking",
+                    message: "A new booking was created and needs assignment.",
+                  }),
+                ),
+              );
+              (global as any).io?.to("admin").emit("notification", {
+                title: "New booking",
+                message: "A new booking was created and needs assignment.",
+              });
+            }
+          } catch (notifyErr) {
+            console.error("booking notification failed", notifyErr);
+          }
+        }
+        if (modelName === "Service") {
+          try {
+            const Notification = createdModels.Notification;
+            const Role = createdModels.Role;
+            const User = createdModels.User;
+
+            const userRole = await Role.findOne({ where: { name: "User" } });
+            if (userRole) {
+              const users = await User.findAll({
+                where: { role_id: (userRole as any).id },
+              });
+              await Promise.all(
+                users.map((u: any) =>
+                  Notification.create({
+                    user_id: u.id,
+                    title: "New service",
+                    message: "A new service has been added. Check services.",
+                  }),
+                ),
+              );
+              (global as any).io?.emit("notification", {
+                title: "New service",
+                message: "A new service has been added. Check services.",
+              });
+            }
+          } catch (notifyErr) {
+            console.error("service notification failed", notifyErr);
+          }
+        }
+        return created;
       } catch (err: any) {
         throw new Error(`Failed to create ${modelName}: ${err.message}`);
       }
@@ -121,15 +204,106 @@ export const generateService = <T extends Model>(modelName: string) => {
     ) => {
       try {
         const instance = await findById(id, options);
+        const beforeProfessionalId =
+          modelName === "Booking" ? (instance as any).professional_id : null;
+        const beforePaymentStatus =
+          modelName === "Booking" ? (instance as any).payment_status : null;
         if (modelName === "User" && (data as any).password) {
           (data as any).password = await bcrypt.hash(
             (data as any).password,
             10,
           );
         }
-        return await instance.update(data, {
+        const updated = await instance.update(data, {
           transaction: options?.transaction,
         });
+        if (modelName === "Booking") {
+          const afterProfessionalId = (updated as any).professional_id;
+          if (
+            afterProfessionalId &&
+            String(afterProfessionalId) !== String(beforeProfessionalId)
+          ) {
+            try {
+              const ClientProfile = createdModels.ClientProfile;
+              const ProfessionalProfile = createdModels.ProfessionalProfile;
+              const Notification = createdModels.Notification;
+
+              const bookingClientId = (updated as any).client_id;
+              const clientProfile = await ClientProfile.findByPk(
+                bookingClientId,
+                { transaction: options?.transaction },
+              );
+
+              const professionalProfile = await ProfessionalProfile.findByPk(
+                afterProfessionalId,
+                { transaction: options?.transaction },
+              );
+
+              const clientUserId = (clientProfile as any)?.user_id;
+              const professionalUserId = (professionalProfile as any)?.user_id;
+
+              if (clientUserId) {
+                await Notification.create(
+                  {
+                    user_id: clientUserId,
+                    title: "Booking assigned",
+                    message:
+                      "Your booking has been assigned to a professional. Please check your bookings for details.",
+                  },
+                  { transaction: options?.transaction },
+                );
+              }
+
+              if (professionalUserId) {
+                await Notification.create(
+                  {
+                    user_id: professionalUserId,
+                    title: "New booking assigned",
+                    message:
+                      "A new booking has been assigned to you. Please check your assigned bookings.",
+                  },
+                  { transaction: options?.transaction },
+                );
+              }
+            } catch (notifyErr) {
+              console.error("Failed to create booking assignment notification", notifyErr);
+            }
+          }
+          const afterPaymentStatus = (updated as any).payment_status;
+          if (
+            afterPaymentStatus === "Paid" &&
+            String(beforePaymentStatus) !== "Paid"
+          ) {
+            try {
+              const ClientProfile = createdModels.ClientProfile;
+              const Notification = createdModels.Notification;
+
+              const clientProfile = await ClientProfile.findByPk(
+                (updated as any).client_id,
+              );
+              const clientUserId = (clientProfile as any)?.user_id;
+
+              if (clientUserId) {
+                await Notification.create({
+                  user_id: clientUserId,
+                  title: "Payment approved",
+                  message:
+                    "Your payment has been approved. Your booking is confirmed.",
+                });
+                (global as any).io
+                  ?.to(`user:${clientUserId}`)
+                  .emit("notification", {
+                    title: "Payment approved",
+                    message:
+                      "Your payment has been approved. Your booking is confirmed.",
+                  });
+              }
+            } catch (notifyErr) {
+              console.error("payment approval notification failed", notifyErr);
+            }
+          }
+        }
+        return updated;
       } catch (err: any) {
         throw new Error(`Failed to update ${modelName}: ${err.message}`);
       }

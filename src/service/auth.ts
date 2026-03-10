@@ -38,6 +38,10 @@ interface LoginPayload {
   phone_number: string;
   password: string;
 }
+interface ForgotPasswordPayload {
+  phone_number: string;
+  new_password: string;
+}
 class AuthError extends Error {
   constructor(message: string) {
     super(message);
@@ -67,6 +71,7 @@ export const authService = {
       where: { id: decoded.id },
       include: [
         { model: createdModels.Role, as: "role" },
+        { model: createdModels.File, as: "profileImage" },
         { model: createdModels.ClientProfile, as: "clientProfile" },
         { model: createdModels.ProfessionalProfile, as: "professionalProfile" },
       ],
@@ -111,7 +116,7 @@ export const authService = {
         {
           name,
           phone_number,
-          password, // Hooks in db.ts will handle hashing
+          password: await bcrypt.hash(password, SALT_ROUNDS),
           role_id,
           status: "Active",
         },
@@ -123,7 +128,9 @@ export const authService = {
       // 3. Create profile dynamically
       let profile = null;
 
-      if ((role as any).name.toLowerCase() === "professional") {
+      const roleName = (role as any).name.toLowerCase();
+
+      if (roleName === "professional") {
         if (!professionalProfile)
           throw new Error("Professional profile data is required");
 
@@ -139,9 +146,29 @@ export const authService = {
         );
       }
 
-      if ((role as any).name.toLowerCase() === "client") {
+      if (roleName === "client" || roleName === "user") {
         if (!clientProfile) throw new Error("Client profile data is required");
 
+        profile = await createdModels.ClientProfile.create(
+          {
+            user_id: userPlain.id,
+            age: clientProfile.age,
+            client_type_id: clientProfile.client_type_id,
+            sex: clientProfile.sex,
+            marital_status: clientProfile.marital_status,
+            residency: clientProfile.residency,
+            academic_level: clientProfile.academic_level,
+            work_status: clientProfile.work_status,
+            financial_problem: clientProfile.financial_problem,
+            substance_use: clientProfile.substance_use,
+            problem_description: clientProfile.problem_description,
+            client_level_id: clientProfile.client_level_id,
+          },
+          { transaction },
+        );
+      }
+
+      if (!profile && clientProfile && roleName !== "professional") {
         profile = await createdModels.ClientProfile.create(
           {
             user_id: userPlain.id,
@@ -181,6 +208,7 @@ export const authService = {
       where: { phone_number },
       include: [
         { model: createdModels.Role, as: "role" },
+        { model: createdModels.File, as: "profileImage" },
         { model: createdModels.ClientProfile, as: "clientProfile" },
         { model: createdModels.ProfessionalProfile, as: "professionalProfile" },
       ],
@@ -202,5 +230,19 @@ export const authService = {
     );
 
     return { user, token };
+  },
+  async forgotPassword(payload: ForgotPasswordPayload) {
+    const { phone_number, new_password } = payload;
+
+    const userInstance = await createdModels.User.findOne({
+      where: { phone_number },
+    });
+
+    if (!userInstance) throw new Error("User not found");
+
+    const hashed = await bcrypt.hash(new_password, SALT_ROUNDS);
+    await userInstance.update({ password: hashed });
+
+    return { message: "Password updated" };
   },
 };

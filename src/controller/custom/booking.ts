@@ -48,4 +48,38 @@ export const BookingController = {
       });
     }
   },
+
+  async getProfessionalBookings(req: any, res: Response) {
+    try {
+      const user_id = req.user.id;
+      const limit = parseInt(req.query.limit as string) || 100;
+      const offset = parseInt(req.query.offset as string) || 0;
+
+      const { rows: bookings, count: total } =
+        await BookingService.getProfessionalBookings(user_id, {
+          limit,
+          offset,
+        });
+
+      return res.json({
+        status: "success",
+        message: "Bookings fetched successfully",
+        count: bookings.length,
+        data: bookings,
+        meta: {
+          limit,
+          offset,
+          total,
+        },
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error: any) {
+      console.error(error);
+      return res.status(400).json({
+        status: "error",
+        message: error.message,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  },
 };

@@ -15,11 +15,28 @@ module.exports = {
     host: process.env.DB_HOST || "127.0.0.1",
     dialect: process.env.DB_DIALECT || "postgres",
   },
-  production: {
-    username: process.env.DB_USERNAME || "postgres",
-    password: process.env.DB_PASSWORD || null,
-    database: process.env.DB_NAME || "hairsalon_prod",
-    host: process.env.DB_HOST || "127.0.0.1",
-    dialect: process.env.DB_DIALECT || "postgres",
-  },
+  production: process.env.DATABASE_URL
+    ? {
+        use_env_variable: "DATABASE_URL",
+        dialect: "postgres",
+        dialectOptions: {
+          ssl: {
+            require: true,
+            rejectUnauthorized: false,
+          },
+        },
+      }
+    : {
+        username: process.env.DB_USERNAME || "postgres",
+        password: process.env.DB_PASSWORD || null,
+        database: process.env.DB_NAME || "hairsalon_prod",
+        host: process.env.DB_HOST || "127.0.0.1",
+        dialect: process.env.DB_DIALECT || "postgres",
+        dialectOptions: {
+          ssl: {
+            require: true,
+            rejectUnauthorized: false,
+          },
+        },
+      },
 };

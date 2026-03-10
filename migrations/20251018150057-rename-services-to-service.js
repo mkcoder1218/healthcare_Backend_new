@@ -6,16 +6,23 @@ module.exports = {
     try {
       const tableList = await queryInterface.showAllTables();
 
-      // 1️⃣ Remove duplicate "services" table if it exists
-      if (tableList.includes('services')) {
-        console.log('Dropping duplicate table "services"...');
-        await queryInterface.dropTable('services', { transaction });
+      // 1️⃣ Rename "services" to "service" if needed (do not drop)
+      if (tableList.includes('services') && !tableList.includes('service')) {
+        console.log('Renaming "services" to "service"...');
+        await queryInterface.renameTable('services', 'service', { transaction });
       }
 
-      // 2️⃣ Rename "Services" to "service"
-      if (tableList.includes('Services')) {
+      // 2️⃣ Rename "Services" to "service" (legacy case)
+      if (tableList.includes('Services') && !tableList.includes('service')) {
         console.log('Renaming "Services" to "service"...');
         await queryInterface.renameTable('Services', 'service', { transaction });
+      }
+
+      const tablesAfter = await queryInterface.showAllTables();
+      if (!tablesAfter.includes('service')) {
+        await transaction.commit();
+        console.log('⚠️ service table not found; skipping FK fixes.');
+        return;
       }
 
       // 3️⃣ Fix users.role_id FK

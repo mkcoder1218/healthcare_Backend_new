@@ -27,4 +27,12 @@ export const authController = {
       res.status(400).json({ message: error.message });
     }
   },
+  async forgotPassword(req: Request, res: Response) {
+    try {
+      const data = await authService.forgotPassword(req.body);
+      res.status(200).json(data);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  },
 };

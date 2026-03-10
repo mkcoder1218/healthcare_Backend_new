@@ -8,6 +8,7 @@ export const model: Record<string, ModelDefinition> = {
       phone_number: { type: "STRING", allowNull: true },
       password: { type: "STRING", allowNull: false },
       role_id: { type: "UUID", allowNull: true }, // links to Role
+      profile_image_id: { type: "UUID", allowNull: true },
 
       status: { type: "STRING", allowNull: false, default: "Active" },
       point: { type: "INTEGER", allowNull: false, default: 0 },
@@ -17,6 +18,11 @@ export const model: Record<string, ModelDefinition> = {
         type: "belongsTo",
         model: "Role",
         options: { foreignKey: "role_id", as: "role" },
+      },
+      {
+        type: "belongsTo",
+        model: "File",
+        options: { foreignKey: "profile_image_id", as: "profileImage" },
       },
       { type: "hasMany", model: "Booking", options: { foreignKey: "user_id" } },
 
@@ -195,8 +201,9 @@ export const model: Record<string, ModelDefinition> = {
     fields: {
       client_id: { type: "UUID", allowNull: false },
       user_id: { type: "UUID", allowNull: true },
-      professional_id: { type: "UUID", allowNull: false },
+      professional_id: { type: "UUID", allowNull: true },
       service_id: { type: "UUID", allowNull: false },
+      payment_file_id: { type: "UUID", allowNull: true },
       date: { type: "STRING", allowNull: false },
       time: { type: "STRING", allowNull: false },
       status: {
@@ -229,6 +236,11 @@ export const model: Record<string, ModelDefinition> = {
         type: "belongsTo",
         model: "Service",
         options: { foreignKey: "service_id", as: "service" },
+      },
+      {
+        type: "belongsTo",
+        model: "File",
+        options: { foreignKey: "payment_file_id", as: "paymentFile" },
       },
     ],
     routes: ["create", "read", "update", "delete"],
@@ -281,6 +293,32 @@ export const model: Record<string, ModelDefinition> = {
     },
     relations: [
       { type: "belongsTo", model: "User", options: { foreignKey: "user_id" } },
+    ],
+    routes: ["create", "read", "update", "delete"],
+    auth: { create: true, read: true, update: true, delete: true },
+  },
+  Recording: {
+    fields: {
+      booking_id: { type: "UUID", allowNull: false },
+      uploader_user_id: { type: "UUID", allowNull: true },
+      file_id: { type: "UUID", allowNull: false },
+    },
+    relations: [
+      {
+        type: "belongsTo",
+        model: "Booking",
+        options: { foreignKey: "booking_id", as: "booking" },
+      },
+      {
+        type: "belongsTo",
+        model: "User",
+        options: { foreignKey: "uploader_user_id", as: "uploader" },
+      },
+      {
+        type: "belongsTo",
+        model: "File",
+        options: { foreignKey: "file_id", as: "file" },
+      },
     ],
     routes: ["create", "read", "update", "delete"],
     auth: { create: true, read: true, update: true, delete: true },
