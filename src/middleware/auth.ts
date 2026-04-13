@@ -21,13 +21,16 @@ interface JwtPayload {
 /**
  * Middleware: Authenticate JWT token and attach user to request
  */
-export const authenticateToken = (secret: string) => {
-  if (!secret) {
-    throw new Error("JWT secret must be provided");
-  }
-
+export const authenticateToken = (secret?: string) => {
   return async (req: express.Request, res: Response, next: NextFunction) => {
     try {
+      if (!secret) {
+        return res.status(500).json({
+          status: "error",
+          message: "JWT secret is not configured on the server",
+        });
+      }
+
       const authHeader = req.headers["authorization"];
       const token = authHeader?.split(" ")[1];
 
@@ -40,8 +43,10 @@ export const authenticateToken = (secret: string) => {
       const payload = jwt.verify(token, secret) as JwtPayload;
 
       const UserModel = createdModels["User"];
+      const RoleModel = createdModels["Role"];
       const user = (await UserModel.findByPk(
         payload.id,
+        RoleModel ? { include: [{ model: RoleModel, as: "role" }] } : undefined,
       )) as unknown as UserInstance;
 
       if (!user) {
@@ -99,8 +104,8 @@ export const checkAccess =
           .json({ status: "error", message: "Unauthorized" });
       }
 
-      // Super Admin bypass (hard-coded id)
-      if (user.role_id === "3b05a837-fe13-4e70-ae2b-e0a7becebcb0") {
+      // Admin bypass (role name)
+      if ((user.role?.name || "").toLowerCase() === "admin") {
         req.user = user;
         return next();
       }

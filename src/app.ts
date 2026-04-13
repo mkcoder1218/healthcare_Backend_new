@@ -13,6 +13,7 @@ import swagger from "./swagger/swaggerIndex";
 import fileController from "./controller/custom/file.controller";
 import meetingUploadController from "./controller/custom/meetingUpload.controller";
 import sequelize from "./model/db";
+import { seedDatabase } from "./seed";
 
 // Initialize Express
 const app = express();
@@ -193,9 +194,23 @@ const syncPromise = shouldSync
 syncPromise
   .then(() => {
     if (shouldSync) console.log("Database synced");
-    httpServer.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-      console.log("📖 Swagger Docs available at http://localhost:3002/api-docs");
+    const shouldSeed =
+      String(
+        process.env.RUN_SEED_ON_START ??
+          (process.env.NODE_ENV !== "production"),
+      ).toLowerCase() === "true";
+
+    const seedPromise = shouldSeed
+      ? seedDatabase({ sync: false, closeConnection: false }).then(() =>
+          console.log("Seed complete"),
+        )
+      : Promise.resolve();
+
+    return seedPromise.then(() => {
+      httpServer.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+        console.log("📖 Swagger Docs available at http://localhost:3002/api-docs");
+      });
     });
   })
   .catch((err) => {

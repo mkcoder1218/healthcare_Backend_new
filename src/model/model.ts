@@ -2,6 +2,47 @@
 import { GLOBAL_STATUS, ModelDefinition } from "../types/global";
 
 export const model: Record<string, ModelDefinition> = {
+  AccessRule: {
+    fields: {
+      name: { type: "STRING", allowNull: false, unique: true },
+      description: { type: "STRING", allowNull: true },
+    },
+    relations: [
+      {
+        type: "belongsToMany",
+        model: "Role",
+        options: {
+          through: "RoleAccessRule",
+          foreignKey: "access_rule_id",
+          otherKey: "role_id",
+        },
+      },
+    ],
+    routes: ["create", "read", "update", "delete"],
+    auth: { create: true, read: true, update: true, delete: true },
+  },
+
+  RoleAccessRule: {
+    fields: {
+      role_id: { type: "UUID", allowNull: false },
+      access_rule_id: { type: "UUID", allowNull: false },
+    },
+    relations: [
+      {
+        type: "belongsTo",
+        model: "Role",
+        options: { foreignKey: "role_id" },
+      },
+      {
+        type: "belongsTo",
+        model: "AccessRule",
+        options: { foreignKey: "access_rule_id", as: "AccessRule" },
+      },
+    ],
+    routes: ["create", "read", "update", "delete"],
+    auth: { create: true, read: true, update: true, delete: true },
+  },
+
   User: {
     fields: {
       name: { type: "STRING", allowNull: false },
@@ -53,6 +94,15 @@ export const model: Record<string, ModelDefinition> = {
     },
     relations: [
       { type: "hasMany", model: "User", options: { foreignKey: "role_id" } },
+      {
+        type: "belongsToMany",
+        model: "AccessRule",
+        options: {
+          through: "RoleAccessRule",
+          foreignKey: "role_id",
+          otherKey: "access_rule_id",
+        },
+      },
     ],
     routes: ["create", "read", "update", "delete"],
     auth: { create: true, read: true, update: true, delete: true },

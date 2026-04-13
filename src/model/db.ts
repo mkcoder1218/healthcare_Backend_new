@@ -8,11 +8,13 @@ import fs from "fs";
 const cwdEnv = path.resolve(process.cwd(), ".env");
 const repoEnv = path.resolve(process.cwd(), "healthcare_Backend_new", ".env");
 const envPath = fs.existsSync(cwdEnv) ? cwdEnv : repoEnv;
-dotenv.config({ path: envPath, override: true });
+dotenv.config({ path: envPath, override: false });
 
 let sequelize: Sequelize;
 
-if (process.env.DATABASE_URL) {
+const forceLocalDb = String(process.env.FORCE_LOCAL_DB || "").toLowerCase() === "true";
+
+if (process.env.DATABASE_URL && !forceLocalDb) {
   // Use full URL when provided (works for production or local)
   sequelize = new Sequelize(process.env.DATABASE_URL, {
     dialect: "postgres",

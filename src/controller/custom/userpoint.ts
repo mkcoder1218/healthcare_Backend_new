@@ -64,7 +64,7 @@ export const userPointController = {
    * Get user's current balance and transaction history
    */
   getUserPoints: asyncHandler(async (req: Request, res: Response) => {
-    const userId = req.params.userId;
+    const userId = String(req.params.userId);
 
     const user = await userService.getOne(userId);
     const transactions = await userPointService.getTransactionHistory(userId);

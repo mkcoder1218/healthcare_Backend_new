@@ -80,7 +80,8 @@ for (const modelName in model) {
     const middlewares: RequestHandler[] = [
       ...(def.auth?.create
         ? [
-            //authenticateToken(process.env.JWT_SECRET!),// checkAccess(modelName, "create")
+            authenticateToken(process.env.JWT_SECRET),
+            checkAccess(modelName, "create"),
           ]
         : []),
       validate(schema),
@@ -94,7 +95,8 @@ for (const modelName in model) {
     const readMw: RequestHandler[] = [
       ...(def.auth?.read
         ? [
-            // authenticateToken(process.env.JWT_SECRET!), checkAccess(modelName, "read")
+            authenticateToken(process.env.JWT_SECRET),
+            checkAccess(modelName, "read"),
           ]
         : []),
     ];
@@ -107,7 +109,8 @@ for (const modelName in model) {
     const middlewares: RequestHandler[] = [
       ...(def.auth?.update
         ? [
-            // authenticateToken(process.env.JWT_SECRET!), checkAccess(modelName, "update")
+            authenticateToken(process.env.JWT_SECRET),
+            checkAccess(modelName, "update"),
           ]
         : []),
       validateUpdate(schemaupdate),
@@ -121,7 +124,8 @@ for (const modelName in model) {
     const deleteMw: RequestHandler[] = [
       ...(def.auth?.delete
         ? [
-            //authenticateToken(process.env.JWT_SECRET!), //checkAccess(modelName, "delete")
+            authenticateToken(process.env.JWT_SECRET),
+            checkAccess(modelName, "delete"),
           ]
         : []),
     ];
